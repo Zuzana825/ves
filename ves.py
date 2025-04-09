@@ -1,92 +1,88 @@
 from PIL import Image, ImageDraw
 
-def render_ves(ves: str, width: int = 640, height: int = 400) -> Image.Image:
+def render_ves(ves: str) -> Image.Image:
+    def parse_hex_color(hex_color: str):
+        hex_color = hex_color.strip().lstrip('#')
+        if len(hex_color) != 6:
+            
+            return (0, 0, 0)
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return (r, g, b)
+
+    width, height = 640, 400
+
     obrazok = Image.new("RGB", (width, height), (255, 255, 255))
     kresba = ImageDraw.Draw(obrazok)
-    riadky = ves.strip().splitlines()
 
-    def line(x1, y1, x2, y2, hrubka, farba):
-        kresba.line((x1, y1, x2, y2), fill=farba, width=hrubka)
+    lines = ves.strip().splitlines()
+    for line in lines:
+        parts = line.split()
+        if not parts:
+            continue 
 
-    def fill_circle(sx, sy, r, hrubka, farba):
-        kresba.ellipse((sx - r, sy - r, sx + r, sy + r), fill=farba, outline=farba, width=hrubka)
-
-    def circle(s1, s2, r, hrubka, farba):
-        for t in range(hrubka):
-            r_s_hrubkou = r + t
-            for x in range(r_s_hrubkou + 1):
-                y = int((r_s_hrubkou**2 - x**2)**0.5)
-                for dx, dy in [(x, y), (y, x), (-x, y), (-y, x), (-x, -y), (-y, -x), (x, -y), (y, -x)]:
-                    px, py = s1 + dx, s2 + dy
-                    if 0 <= px < width and 0 <= py < height:
-                        obrazok.putpixel((px, py), farba)
-
-    def rectangle(x1, y1, x2, y2, hrubka, farba):
-        kresba.rectangle((x1, y1, x2, y2), outline=farba, width=hrubka)
-
-    def fill_rectangle(x1, y1, x2, y2, hrubka, farba):
-        kresba.rectangle((x1, y1, x2, y2), fill=farba, outline=farba, width=hrubka)
-
-    def triangle(x1, y1, x2, y2, x3, y3, hrubka, farba):
-        kresba.line((x1, y1, x2, y2), fill=farba, width=hrubka)
-        kresba.line((x2, y2, x3, y3), fill=farba, width=hrubka)
-        kresba.line((x3, y3, x1, y1), fill=farba, width=hrubka)
-
-    def fill_triangle(x1, y1, x2, y2, x3, y3, farba):
-        kresba.polygon((x1, y1, x2, y2, x3, y3), fill=farba)
-
-    for riadok in riadky:
-        prvky = riadok.split()
-        if not prvky:
-            continue
-        typ = prvky[0].upper()
-
+        cmd = parts[0].upper()  
         try:
-            if typ == "LINE":
-                x1, y1, x2, y2 = map(int, prvky[1:5])
-                hrubka = int(prvky[5])
-                farba = tuple(map(int, prvky[6:9]))
-                line(x1, y1, x2, y2, hrubka, farba)
+            if cmd == "VES":
+                if len(parts) >= 4:
+                    new_width = int(parts[2])
+                    new_height = int(parts[3])
+                    width, height = new_width, new_height
+                    obrazok = Image.new("RGB", (width, height), (255, 255, 255))
+                    kresba = ImageDraw.Draw(obrazok)
 
-            elif typ == "FILL_CIRCLE":
-                sx, sy, r = map(int, prvky[1:4])
-                hrubka = int(prvky[4])
-                farba = tuple(map(int, prvky[5:8]))
-                fill_circle(sx, sy, r, hrubka, farba)
+            elif cmd == "CLEAR":
+                if len(parts) >= 2:
+                    color = parse_hex_color(parts[1])
+                    kresba.rectangle((0, 0, width, height), fill=color)
 
-            elif typ == "CIRCLE":
-                s1, s2, r = map(int, prvky[1:4])
-                hrubka = int(prvky[4])
-                farba = tuple(map(int, prvky[5:8]))
-                circle(s1, s2, r, hrubka, farba)
+            elif cmd == "FILL_TRIANGLE":
+                if len(parts) == 8:
+                    x1, y1, x2, y2, x3, y3 = map(int, parts[1:7])
+                    color = parse_hex_color(parts[7])
+                    kresba.polygon((x1, y1, x2, y2, x3, y3), fill=color)
 
-            elif typ == "REC":
-                x1, y1, x2, y2 = map(int, prvky[1:5])
-                hrubka = int(prvky[5])
-                farba = tuple(map(int, prvky[6:9]))
-                rectangle(x1, y1, x2, y2, hrubka, farba)
+            elif cmd == "FILL_CIRCLE":
+                if len(parts) == 5:
+                    x, y, r = map(int, parts[1:4])
+                    color = parse_hex_color(parts[4])
+                    kresba.ellipse((x - r, y - r, x + r, y + r), fill=color)
 
-            elif typ == "FILL_REC":
-                x1, y1, x2, y2 = map(int, prvky[1:5])
-                hrubka = int(prvky[5])
-                farba = tuple(map(int, prvky[6:9]))
-                fill_rectangle(x1, y1, x2, y2, hrubka, farba)
+            elif cmd == "FILL_REC":
+                if len(parts) == 6:
+                    x1, y1, x2, y2 = map(int, parts[1:5])
+                    color = parse_hex_color(parts[5])
+                    kresba.rectangle((x1, y1, x2, y2), fill=color)
 
-            elif typ == "TRIANGLE":
-                x1, y1, x2, y2, x3, y3 = map(int, prvky[1:7])
-                hrubka = int(prvky[7])
-                farba = tuple(map(int, prvky[8:11]))
-                triangle(x1, y1, x2, y2, x3, y3, hrubka, farba)
+            elif cmd == "CIRCLE":
+                if len(parts) == 6:
+                    x, y, r, hrubka = map(int, parts[1:5])
+                    color = parse_hex_color(parts[5])
+                    kresba.ellipse((x - r, y - r, x + r, y + r),
+                                   outline=color, width=hrubka)
 
-            elif typ == "FILL_TRIANGLE":
-                x1, y1, x2, y2, x3, y3 = map(int, prvky[1:7])
-                farba = tuple(map(int, prvky[7:10]))
-                fill_triangle(x1, y1, x2, y2, x3, y3, farba)
+            elif cmd == "TRIANGLE":
+                if len(parts) == 9:
+                    x1, y1, x2, y2, x3, y3, hrubka = map(int, parts[1:8])
+                    color = parse_hex_color(parts[8])
+                    kresba.line((x1, y1, x2, y2), fill=color, width=hrubka)
+                    kresba.line((x2, y2, x3, y3), fill=color, width=hrubka)
+                    kresba.line((x3, y3, x1, y1), fill=color, width=hrubka)
 
-            elif typ == "CLEAR":
-                fill_rectangle(0, 0, width, height, 0, (255, 255, 255))
+            elif cmd == "RECT":
+                if len(parts) == 7:
+                    x1, y1, x2, y2, hrubka = map(int, parts[1:6])
+                    color = parse_hex_color(parts[6])
+                    kresba.rectangle((x1, y1, x2, y2), outline=color, width=hrubka)
+
+            elif cmd == "LINE":
+                if len(parts) == 7:
+                    x1, y1, x2, y2, hrubka = map(int, parts[1:6])
+                    color = parse_hex_color(parts[6])
+                    kresba.line((x1, y1, x2, y2), fill=color, width=hrubka)
 
         except Exception as e:
-            print(f"Chyba pri spracovaní riadku: {riadok}, chyba: {e}")
+            print(f"Chyba pri spracovaní riadku '{line}': {e}")
 
     return obrazok
