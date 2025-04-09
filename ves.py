@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw
 
-def render_ves(ves: str, width: int = 600, height: int = 400) -> Image.Image:
+def render_ves(ves: str, width: int = 640, height: int = 400) -> Image.Image:
     obrazok = Image.new("RGB", (width, height), (255, 255, 255))
     kresba = ImageDraw.Draw(obrazok)
     riadky = ves.strip().splitlines()
