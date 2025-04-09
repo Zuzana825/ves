@@ -1,19 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="sk">
 <head>
-	<title>Vector Script GUI</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Script GUI</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<section>
-	<form method="POST" action="/render">
-		<button>Zobraziť</button>
-		<textarea name="ves"></textarea>
-	</form>
-</section>
-<section>
-	<img id="output" />
-</section>
-<script type="text/javascript" src="script.js" ></script>
+  <section id="editorSection">
+    <h1>VES v1.0 Editor</h1>
+    <!-- Editor pre zadávanie geometrických tvarov -->
+    <div id="shapeEditor">
+      <label for="shapeSelect">Vyber tvar:</label>
+      <select id="shapeSelect">
+        <option value="CLEAR">CLEAR</option>
+        <option value="FILL_TRIANGLE">FILL_TRIANGLE</option>
+        <option value="FILL_CIRCLE">FILL_CIRCLE</option>
+        <option value="FILL_RECT">FILL_RECT</option>
+        <option value="CIRCLE">CIRCLE</option>
+        <option value="TRIANGLE">TRIANGLE</option>
+        <option value="RECT">RECT</option>
+        <option value="LINE">LINE</option>
+      </select>
+      <!-- Dynamicky generované vstupné polia pre vybraný tvar -->
+      <div id="shapeInputs"></div>
+      <!-- Tlačidlo, ktoré pripojí príkaz ako nový riadok do textarea -->
+      <button id="addShapeBtn" type="button">Pridať tvar</button>
+    </div>
+    <!-- Formulár, ktorý obsahuje výsledný VES skript -->
+    <form id="vesForm">
+      <textarea id="vesTextarea" name="ves" placeholder="Sem vlož obsah .ves súboru..."></textarea>
+      <button type="submit">Zobraziť</button>
+    </form>
+  </section>
+  <!-- Výstupná sekcia: napr. na zobrazenie výsledného obrázka -->
+  <section id="outputSection">
+    <img id="output" src="" alt="Vygenerovaný obrázok" style="display: none;">
+  </section>
+  <script src="script.js"></script>
 </body>
 </html>
